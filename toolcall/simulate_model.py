@@ -1,11 +1,7 @@
 import json
 import re
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="http://localhost:11434/v1/",
-    api_key="ollama",  # 必填，但 Ollama 会忽略
-)
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
 
 def get_weather(city: str) -> str:
     fake_db = {
@@ -49,15 +45,21 @@ system_prompt = """
 
 user_prompt = "帮我查一下 Beijing 的天气"
 
-resp = client.responses.create(
-    model="qwen3.5:cloud",
-    input=[
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-    ],
+llm = ChatOpenAI(
+    model="qwen3.5:cloud",  
+    base_url="http://localhost:11434/v1/",   
+    api_key="ollama",
 )
 
-model_text = resp.output_text
+
+messages = [
+    SystemMessage(content=system_prompt),
+    HumanMessage(content=user_prompt)
+]
+
+resp = llm.invoke(messages)
+
+model_text = resp.content
 print("模型原始输出：")
 print(model_text)
 
